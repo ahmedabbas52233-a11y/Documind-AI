@@ -32,13 +32,24 @@ def _sse(event: str, data: str) -> str:
 
 
 def _mock_analysis(text_snippet: str) -> dict:
+<<<<<<< HEAD
+=======
+    """Return a structured mock when no API key is configured."""
+>>>>>>> origin/main
     has_text = len(text_snippet.strip()) > 20
     return {
         "analysis": (
             "This document has been successfully uploaded and processed by DocuMind AI. "
+<<<<<<< HEAD
             + ("The document contains readable text content that has been extracted. " if has_text else "The document metadata has been captured. ")
             + "To receive real AI-powered analysis, add your OpenAI API key to the backend "
             + ".env file (OPENAI_API_KEY=sk-proj-...) and restart the server."
+=======
+            f"{'The document contains readable text content that has been extracted.' if has_text else 'The document metadata has been captured.'} "
+            "To receive a real AI-powered analysis with genuine insights, sentiment detection, "
+            "and actionable recommendations, add your OpenAI API key to the backend .env file "
+            "(OPENAI_API_KEY=sk-proj-...) and restart the server."
+>>>>>>> origin/main
         ),
         "sentiment": "neutral",
         "key_points": [
@@ -49,12 +60,17 @@ def _mock_analysis(text_snippet: str) -> dict:
         "recommendations": [
             "Add OPENAI_API_KEY to backend/.env file",
             "Restart uvicorn after updating .env",
+<<<<<<< HEAD
             "Re-upload document to receive GPT-4o analysis",
+=======
+            "Re-upload document to get real GPT-4o analysis",
+>>>>>>> origin/main
         ],
     }
 
 
 async def _stream_openai(text: str) -> AsyncGenerator[str, None]:
+<<<<<<< HEAD
     """
     Yield SSE events.  Protocol:
       event: start  → analysis is beginning
@@ -93,6 +109,48 @@ async def _stream_openai(text: str) -> AsyncGenerator[str, None]:
 
     # Guarantee: always yield result + done
     yield _sse("result", json.dumps(payload))
+=======
+    """Yield SSE-formatted chunks. Uses real OpenAI when key is set, mock otherwise."""
+    yield _sse("start", "")
+
+    if not settings.OPENAI_API_KEY:
+        mock = _mock_analysis(text)
+        yield _sse("data", json.dumps(mock))
+        yield _sse("done", "")
+        return
+
+    try:
+        from openai import AsyncOpenAI
+        client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+
+        # Use the non-streaming endpoint so we get reliable JSON back.
+        # Streaming JSON fragments are hard to parse mid-stream; we stream
+        # the whole response as one chunk but keep SSE so the frontend UX
+        # (loading indicator, live status) works identically.
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": _SYSTEM_PROMPT},
+                {"role": "user",   "content": f"Document text:\n\n{text[:12_000]}"},
+            ],
+            max_tokens=1024,
+            temperature=0.3,
+            response_format={"type": "json_object"},
+        )
+        content = response.choices[0].message.content or ""
+        # Validate JSON before sending
+        parsed = json.loads(content)
+        yield _sse("data", json.dumps(parsed))
+
+    except json.JSONDecodeError as e:
+        logger.error("GPT returned invalid JSON: %s", e)
+        yield _sse("data", json.dumps(_mock_analysis(text)))
+    except Exception as e:
+        logger.exception("OpenAI error: %s", e)
+        yield _sse("error", str(e))
+        return
+
+>>>>>>> origin/main
     yield _sse("done", "")
 
 
@@ -115,8 +173,14 @@ async def analyze_stream(
         _stream_openai(doc.extracted_text),
         media_type="text/event-stream",
         headers={
+<<<<<<< HEAD
             "Cache-Control":     "no-cache",
             "X-Accel-Buffering": "no",
             "Connection":        "keep-alive",
+=======
+            "Cache-Control":    "no-cache",
+            "X-Accel-Buffering":"no",
+            "Connection":       "keep-alive",
+>>>>>>> origin/main
         },
     )
