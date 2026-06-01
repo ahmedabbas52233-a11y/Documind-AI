@@ -1,0 +1,36 @@
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    is_active: bool
+    
+    class Config:
+        from_attributes = True
+
+
+class Token(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+class DocumentUploadResponse(BaseModel):
+    document_id: int
+    filename: str
+    extracted_text: str
+    message: str
+
+
+class AnalysisResponse(BaseModel):
+    analysis: str
+    sentiment: str
+    key_points: List[str]
+    recommendations: List[str]
