@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <div align="center">
 
 <img src="https://img.shields.io/badge/DocuMind_AI-v2.0.0-6366f1?style=for-the-badge&logo=openai&logoColor=white" alt="DocuMind AI v2.0.0" />
