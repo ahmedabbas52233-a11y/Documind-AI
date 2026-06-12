@@ -30,6 +30,10 @@ jobs:
   backend:
     name: Backend — install & test
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "sqlite+aiosqlite:///./test.db"
+      SECRET_KEY: "ci-test-secret-key-minimum-32-chars-long"
+      OPENAI_API_KEY: ""
     steps:
       - uses: actions/checkout@v4
 
@@ -44,8 +48,3 @@ jobs:
 
       - name: Run tests
         run: cd backend && pytest tests/ -v --tb=short
-
-      env:
-        DATABASE_URL:   "sqlite+aiosqlite:///./test.db"
-        SECRET_KEY:     "ci-test-secret-key-minimum-32-chars-long"
-        OPENAI_API_KEY: ""
