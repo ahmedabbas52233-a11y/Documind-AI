@@ -1,19 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-<<<<<<< HEAD
 @layer base {
   body { @apply bg-[#0c0c10] text-slate-200 antialiased; font-family: 'Inter', sans-serif; }
   input, button, select, textarea { font-family: inherit; }
-=======
-
-@layer base {
-  body {
-    @apply bg-[#080c18] text-slate-200 antialiased;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  }
-  input, button, select, textarea {
-    font-family: inherit;
-  }
->>>>>>> origin/main
 }
