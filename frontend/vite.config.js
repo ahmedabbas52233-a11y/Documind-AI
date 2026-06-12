@@ -18,9 +18,18 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-router-dom"],
-          icons:  ["lucide-react"],
+        // Vite 8 (Rolldown) requires manualChunks as a function, not an object
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("lucide-react")) return "icons";
+            if (
+              id.includes("react-router") ||
+              id.includes("react-dom") ||
+              id.includes("/react/")
+            ) {
+              return "vendor";
+            }
+          }
         },
       },
     },
