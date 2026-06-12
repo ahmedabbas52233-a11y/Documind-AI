@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -11,13 +11,16 @@ from app.models.user import User
 from app.routers.auth import get_current_active_user
 from app.schemas.document import DocumentUploadResponse
 from app.services.extractor import ALLOWED_TYPES, extract_text, get_file_extension
+from app.services.limiter import limiter
 
 router = APIRouter(prefix="/upload", tags=["Upload"])
 logger = logging.getLogger(__name__)
 
 
 @router.post("/", response_model=DocumentUploadResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_active_user),

@@ -1,53 +1,27 @@
-# ── Python ───────────────────────────────────────────────────────────────────
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-*.egg
-*.egg-info/
-dist/
-build/
-.eggs/
-.Python
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Virtual environments
 .venv/
 venv/
-env/
-ENV/
-.env.bak
+*.egg-info/
 
-# ── Environment / secrets ─────────────────────────────────────────────────────
+# Environment — never commit secrets
 .env
 *.env.local
-.env.production
 
-# ── Node / Frontend ───────────────────────────────────────────────────────────
+# Node
 node_modules/
 frontend/dist/
 frontend/.vite/
-*.tsbuildinfo
 
-# ── Testing ───────────────────────────────────────────────────────────────────
+# Testing
 .pytest_cache/
 .coverage
-htmlcov/
-.mypy_cache/
+test_*.db
 
-# ── OS / Editor ───────────────────────────────────────────────────────────────
+# OS / Editor
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
 *.swp
-*.swo
-
-# ── Uploads (local dev only) ──────────────────────────────────────────────────
-backend/uploads/
-*.pdf
-*.png
-*.jpg
-*.jpeg
-*.webp

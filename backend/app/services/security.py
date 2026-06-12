@@ -6,11 +6,6 @@ from passlib.context import CryptContext
 
 from app.config import settings
 
-# bcrypt 4.x changed the import path; passlib 1.7.4 works fine with it
-# but emits a deprecation warning.  Suppress it cleanly:
-import warnings
-warnings.filterwarnings("ignore", ".*bcrypt.*", category=UserWarning)
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -23,6 +18,7 @@ def get_password_hash(password: str) -> str:
 
 
 def _now_utc() -> datetime:
+    """Return current UTC time as timezone-aware datetime."""
     return datetime.now(timezone.utc)
 
 

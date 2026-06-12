@@ -1,10 +1,15 @@
-from contextlib import asynccontextmanager
+import warnings
+warnings.filterwarnings("ignore", ".*bcrypt.*", category=UserWarning)
 
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.database import init_db
+from app.services.limiter import limiter
 from app.routers.auth import router as auth_router
 from app.routers.upload import router as upload_router
 from app.routers.analyze import router as analyze_router
@@ -13,7 +18,6 @@ from app.routers.history import router as history_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Run DB migrations on startup."""
     await init_db()
     yield
 
@@ -23,14 +27,24 @@ app = FastAPI(
     description="Intelligent Document Analyzer API",
     version="2.0.0",
     lifespan=lifespan,
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json",
 )
 
-# -----------------------------------------------------------------------
-# IMPORTANT: Add CORS middleware BEFORE including routers.
-# FastAPI processes middleware in reverse-registration order; adding it
-# after the routers means preflight OPTIONS requests hit the route layer
-# first, which raises 405 Method Not Allowed before CORS headers are set.
-# -----------------------------------------------------------------------
+# Attach rate limiter to app state
+app.state.limiter = limiter
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Too many requests. Please slow down."},
+    )
+
+
+# CORS must be registered before routers
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -39,8 +53,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth_router, prefix="/api/v1/auth")
-app.include_router(upload_router, prefix="/api/v1")
+app.include_router(auth_router,    prefix="/api/v1/auth")
+app.include_router(upload_router,  prefix="/api/v1")
 app.include_router(analyze_router, prefix="/api/v1")
 app.include_router(history_router, prefix="/api/v1")
 
