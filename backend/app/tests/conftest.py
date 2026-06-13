@@ -1,32 +1,40 @@
 """
-Test configuration — uses SQLite (aiosqlite) so no Postgres is needed.
-Environment is set BEFORE any app module is imported.
+Test configuration.
+Sets environment variables BEFORE any app module is imported,
+then creates all DB tables via init_db() before tests run.
 """
 import os
-os.environ["DATABASE_URL"]   = "sqlite+aiosqlite:///./test_documind.db"
-os.environ["SECRET_KEY"]     = "test-secret-key-minimum-32-characters-long"
-os.environ["OPENAI_API_KEY"] = ""   # always use mock in tests
+
+# Must be set BEFORE any app import — pydantic-settings reads at class definition time
+os.environ["DATABASE_URL"]   = "sqlite+aiosqlite:///./test_ci.db"
+os.environ["SECRET_KEY"]     = "ci-test-secret-key-minimum-32-characters"
+os.environ["OPENAI_API_KEY"] = ""   # use mock analysis in tests
 
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 
 
-@pytest_asyncio.fixture(scope="session")
-async def client():
-    # Import app AFTER env vars are set
+# ── Session-scoped DB init (runs once before ALL tests) ──────────────────────
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def setup_database():
+    """Create SQLite tables before any test, tear down after."""
     from app.database import init_db, engine
-    from app.main import app
-
     await init_db()
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
-        yield c
-
+    yield
     await engine.dispose()
-    if os.path.exists("./test_documind.db"):
-        os.remove("./test_documind.db")
+    db_path = "./test_ci.db"
+    if os.path.exists(db_path):
+        os.remove(db_path)
 
 
-@pytest.fixture(scope="session")
-def anyio_backend():
-    return "asyncio"
+# ── Session-scoped HTTP client ───────────────────────────────────────────────
+@pytest_asyncio.fixture(scope="session")
+async def client(setup_database):
+    """Reusable async test client for the FastAPI app."""
+    from app.main import app
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        yield ac

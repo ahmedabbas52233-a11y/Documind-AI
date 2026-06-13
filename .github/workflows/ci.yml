@@ -7,44 +7,39 @@ on:
     branches: [main]
 
 jobs:
-  # ── Frontend ─────────────────────────────────────────────────────────────────
+  # ── Frontend ─────────────────────────────────────────────────────────────
   frontend:
     name: Frontend — install & build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
+      - name: Install
         run: cd frontend && npm ci
-
-      - name: Production build
+      - name: Build
         run: cd frontend && npm run build
 
-  # ── Backend ──────────────────────────────────────────────────────────────────
+  # ── Backend ───────────────────────────────────────────────────────────────
   backend:
     name: Backend — install & test
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: "sqlite+aiosqlite:///./test.db"
-      SECRET_KEY: "ci-test-secret-key-minimum-32-chars-long"
+      DATABASE_URL:   "sqlite+aiosqlite:///./test_ci.db"
+      SECRET_KEY:     "ci-test-secret-key-minimum-32-characters"
       OPENAI_API_KEY: ""
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
           cache-dependency-path: backend/requirements.txt
-
       - name: Install dependencies
         run: cd backend && pip install -r requirements.txt
-
       - name: Run tests
+        # Run from backend/ so 'app' package resolves correctly
         run: cd backend && pytest app/tests/ -v --tb=short
