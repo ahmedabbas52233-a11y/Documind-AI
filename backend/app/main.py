@@ -1,5 +1,3 @@
-import warnings
-warnings.filterwarnings("ignore", ".*bcrypt.*", category=UserWarning)
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +11,10 @@ from app.routers.auth import router as auth_router
 from app.routers.upload import router as upload_router
 from app.routers.analyze import router as analyze_router
 from app.routers.history import router as history_router
+
+import warnings
+warnings.filterwarnings("ignore", ".*bcrypt.*", category=UserWarning)
+
 
 
 @asynccontextmanager

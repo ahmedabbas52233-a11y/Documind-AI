@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AlertCircle, FileText, Info, Sparkles } from "lucide-react";
-import FileDropZone from "/components/FileDropZone";
-import { useAuth } from "/contexts/AuthContext";
+import FileDropZone from "../components/FileDropZone";
+import { useAuth } from "../contexts/AuthContext";
 import { C } from "../theme";
 
 export default function UploadPage() {
