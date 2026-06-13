@@ -5,14 +5,14 @@
 **Intelligent document analysis powered by GPT-4o**
 
 [![CI](https://github.com/ahmedabbas52233-a11y/Documind-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/ahmedabbas52233-a11y/Documind-AI/actions)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ahmedabbas52233-a11y/Documind-AI)
+[![Deploy with Vercel](https://vercel.com/button)](https://documind-ai-ruby.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776ab)](https://python.org)
 [![React](https://img.shields.io/badge/React-18-61dafb)](https://react.dev)
 
 Upload any PDF or image — get a structured AI summary, sentiment score, key insights, and actionable recommendations in seconds.
 
-**[Live Demo](#)** · [Report Bug](../../issues) · [Request Feature](../../issues)
+**[Live Demo](https://documind-ai-ruby.vercel.app)** · [Report Bug](https://github.com/ahmedabbas52233-a11y/Documind-AI/issues) · [Request Feature](https://github.com/ahmedabbas52233-a11y/Documind-AI/issues)
 
 </div>
 
@@ -124,36 +124,6 @@ npm run dev   # http://localhost:5173
 ```bash
 cd backend && pytest tests/ -v
 ```
-
----
-
-## Deploy to Vercel (full-stack)
-
-### One-click
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ahmedabbas52233-a11y/Documind-AI)
-
-### Manual
-
-1. Push to GitHub
-2. Go to [vercel.com](https://vercel.com) → **New Project** → import this repo
-3. Leave **Root Directory** as `/` (the `vercel.json` handles routing)
-4. Set these **Environment Variables** in Vercel Dashboard → Settings:
-
-| Variable | Value |
-|---|---|
-| `DATABASE_URL` | `postgresql+asyncpg://user:pass@host/db?ssl=require` (get from [Neon](https://neon.tech)) |
-| `SECRET_KEY` | Any random 32+ char string |
-| `OPENAI_API_KEY` | `sk-proj-...` (optional — mock analysis used if blank) |
-| `CORS_ORIGINS` | `https://your-app.vercel.app` |
-
-5. Click **Deploy**
-
-> **Database**: Use [Neon](https://neon.tech) — free serverless PostgreSQL, works perfectly with Vercel.  
-> **File limit**: Vercel free tier caps requests at 4.5 MB. Set `MAX_FILE_SIZE=4194304` in env vars.
-
----
-
 ## API Reference
 
 | Method | Endpoint | Auth | Description |
