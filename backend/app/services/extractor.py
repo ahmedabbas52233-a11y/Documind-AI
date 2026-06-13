@@ -3,8 +3,11 @@ Document text extraction.
   PDF   → pdfplumber (selectable text)
   Image → pytesseract with Windows auto-detect + graceful fallback
 """
-import io, logging, shutil
+import io
+import logging
+import shutil
 from typing import Dict
+
 import pdfplumber
 from PIL import Image
 
@@ -26,7 +29,10 @@ def get_file_extension(content_type: str) -> str:
 # ── Tesseract detection (once at import) ──────────────────────────────────────
 _TESSERACT_OK = False
 try:
-    import pytesseract, platform, os
+    import platform
+    import os
+    import pytesseract
+
     if platform.system() == "Windows" and not shutil.which("tesseract"):
         for _p in [
             r"C:\Program Files\Tesseract-OCR\tesseract.exe",
@@ -35,11 +41,12 @@ try:
             if os.path.isfile(_p):
                 pytesseract.pytesseract.tesseract_cmd = _p
                 break
+
     pytesseract.get_tesseract_version()
     _TESSERACT_OK = True
     logger.info("Tesseract OCR ready")
 except Exception as _e:
-    logger.warning("Tesseract unavailable (%s) — image uploads use metadata fallback", _e)
+    logger.warning("Tesseract unavailable (%s) — using metadata fallback", _e)
 
 
 # ── Public API ────────────────────────────────────────────────────────────────
@@ -61,7 +68,7 @@ async def _pdf(data: bytes) -> str:
     if not result:
         raise ValueError(
             "No selectable text found in this PDF. "
-            "If it is a scanned document, export its pages as PNG/JPG and upload those."
+            "If it is scanned, export its pages as PNG/JPG and upload those."
         )
     return result
 
@@ -69,11 +76,12 @@ async def _pdf(data: bytes) -> str:
 # ── Image ─────────────────────────────────────────────────────────────────────
 async def _image(data: bytes) -> str:
     img = Image.open(io.BytesIO(data))
-    # Normalise to RGB
+
+    # Flatten RGBA transparency onto white before OCR
     if img.mode == "RGBA":
-        bg = Image.new("RGB", img.size, (255, 255, 255))
+        bg = Image.new("RGBA", img.size, (255, 255, 255, 255))  # type: ignore[arg-type]
         bg.paste(img, mask=img.split()[3])
-        img = bg
+        img = bg.convert("RGB")
     elif img.mode not in ("RGB", "L"):
         img = img.convert("RGB")
 
@@ -85,23 +93,22 @@ async def _image(data: bytes) -> str:
         if text:
             return text
 
-    # Graceful metadata fallback
+    # Graceful metadata fallback (no crash when Tesseract is absent)
     w, h = img.size
     small = img.convert("RGB").resize((50, 50))
     px = list(small.getdata())
-    r = sum(p[0] for p in px) // len(px)
-    g = sum(p[1] for p in px) // len(px)
-    b = sum(p[2] for p in px) // len(px)
+    r = sum(p[0] for p in px) // len(px)  # type: ignore[index]
+    g = sum(p[1] for p in px) // len(px)  # type: ignore[index]
+    b = sum(p[2] for p in px) // len(px)  # type: ignore[index]
     brightness = (r + g + b) // 3
-    tone = "bright/light" if brightness > 180 else "dark" if brightness < 80 else "medium contrast"
+    tone = "bright" if brightness > 180 else "dark" if brightness < 80 else "medium contrast"
 
     return (
         "[Image document — OCR not available on this server]\n\n"
-        f"Dimensions: {w} × {h} px\n"
-        f"Brightness: {brightness}/255 ({tone})\n"
+        f"Dimensions: {w} × {h} px | Brightness: {brightness}/255 ({tone})\n"
         f"Dominant colour: RGB({r},{g},{b})\n\n"
         "To enable OCR: install Tesseract 5.x and restart the server.\n"
         "  Windows: https://github.com/UB-Mannheim/tesseract/wiki\n"
-        "  macOS: brew install tesseract\n"
-        "  Linux: sudo apt install tesseract-ocr"
+        "  macOS:   brew install tesseract\n"
+        "  Linux:   sudo apt install tesseract-ocr"
     )

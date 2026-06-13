@@ -1,0 +1,12 @@
+[lint]
+# E402 — module import not at top: intentional in main.py (bcrypt warning suppression)
+# E501 — line too long: handled by formatter, not linter
+ignore = ["E501"]
+
+[lint.per-file-ignores]
+"app/main.py"          = ["E402"]          # bcrypt suppression must precede imports
+"app/tests/*"          = ["S101", "S105"]  # assert + hardcoded strings OK in tests
+"alembic/env.py"       = ["E402", "F401"]  # alembic generated file
+
+[lint.isort]
+known-first-party = ["app"]

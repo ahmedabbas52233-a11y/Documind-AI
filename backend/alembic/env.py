@@ -1,51 +1,61 @@
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-from alembic import context
+# Import all models so their tables are registered in metadata
+import app.models.user      # noqa: F401
+import app.models.document  # noqa: F401
 import os
 import sys
+from logging.config import fileConfig
 
-# Add app to path
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from sqlalchemy import engine_from_config, pool
+from alembic import context  # type: ignore[attr-defined] — Alembic runtime symbol
 
-from app.database import Base
+# Ensure 'app' package is importable from backend/
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
 from app.config import settings
+from app.database import Base
 
-config = context.config
+# Alembic Config object
+config = context.config  # type: ignore[attr-defined]
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+# Set the DB URL from app settings
+config.set_main_option("sqlalchemy.url", settings.database_url)
+
+
+
 target_metadata = Base.metadata
 
-def get_url():
-    return settings.database_url
 
 def run_migrations_offline() -> None:
-    url = get_url()
-    context.configure(
+    url = config.get_main_option("sqlalchemy.url")
+    context.configure(  # type: ignore[attr-defined]
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
-    with context.begin_transaction():
-        context.run_migrations()
+    with context.begin_transaction():  # type: ignore[attr-defined]
+        context.run_migrations()  # type: ignore[attr-defined]
+
 
 def run_migrations_online() -> None:
-    configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = get_url()
     connectable = engine_from_config(
-        configuration,
+        config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
-        with context.begin_transaction():
-            context.run_migrations()
+        context.configure(  # type: ignore[attr-defined]
+            connection=connection,
+            target_metadata=target_metadata,
+        )
+        with context.begin_transaction():  # type: ignore[attr-defined]
+            context.run_migrations()  # type: ignore[attr-defined]
 
-if context.is_offline_mode():
+
+if context.is_offline_mode():  # type: ignore[attr-defined]
     run_migrations_offline()
 else:
     run_migrations_online()

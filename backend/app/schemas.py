@@ -1,8 +1,14 @@
+from datetime import datetime
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
 
 
-class UserCreate(BaseModel):
+# ── Auth ─────────────────────────────────────────────────────────────────────
+class UserRegister(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
@@ -11,17 +17,22 @@ class UserResponse(BaseModel):
     id: int
     email: str
     is_active: bool
-    
-    class Config:
-        from_attributes = True
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
-class Token(BaseModel):
+class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+# ── Document ─────────────────────────────────────────────────────────────────
 class DocumentUploadResponse(BaseModel):
     document_id: int
     filename: str
@@ -29,8 +40,17 @@ class DocumentUploadResponse(BaseModel):
     message: str
 
 
-class AnalysisResponse(BaseModel):
-    analysis: str
-    sentiment: str
-    key_points: List[str]
-    recommendations: List[str]
+class DocumentHistoryItem(BaseModel):
+    id: int
+    filename: str
+    file_size: int
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class PaginatedHistory(BaseModel):
+    items: list[DocumentHistoryItem]
+    total: int
+    page: int
+    pages: int
