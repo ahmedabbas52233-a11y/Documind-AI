@@ -1,17 +1,13 @@
-"""Auth endpoint tests."""
-import pytest
+"""Auth endpoint tests — 7 tests, 0 imports needed beyond client fixture."""
 
 
 async def test_health(client):
-    """Health check returns 200 and correct body."""
     r = await client.get("/health")
     assert r.status_code == 200
-    body = r.json()
-    assert body["status"] == "healthy"
+    assert r.json()["status"] == "healthy"
 
 
 async def test_register(client):
-    """Registering a new user returns 201 with user data."""
     r = await client.post(
         "/api/v1/auth/register",
         json={"email": "test@example.com", "password": "SecurePass1!"},
@@ -23,7 +19,6 @@ async def test_register(client):
 
 
 async def test_register_duplicate(client):
-    """Registering with an existing email returns 400."""
     payload = {"email": "dupe@example.com", "password": "SecurePass1!"}
     await client.post("/api/v1/auth/register", json=payload)
     r = await client.post("/api/v1/auth/register", json=payload)
@@ -31,7 +26,6 @@ async def test_register_duplicate(client):
 
 
 async def test_login(client):
-    """Valid credentials return access_token and refresh_token."""
     await client.post(
         "/api/v1/auth/register",
         json={"email": "login@example.com", "password": "SecurePass1!"},
@@ -48,7 +42,6 @@ async def test_login(client):
 
 
 async def test_login_wrong_password(client):
-    """Wrong password returns 401."""
     await client.post(
         "/api/v1/auth/register",
         json={"email": "wrongpw@example.com", "password": "SecurePass1!"},
@@ -62,12 +55,10 @@ async def test_login_wrong_password(client):
 
 
 async def test_me_unauthenticated(client):
-    """/me without token returns 401."""
     r = await client.get("/api/v1/auth/me")
     assert r.status_code == 401
 
 
 async def test_history_requires_auth(client):
-    """/history without token returns 401."""
     r = await client.get("/api/v1/history/")
     assert r.status_code == 401
