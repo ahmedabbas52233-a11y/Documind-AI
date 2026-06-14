@@ -1,6 +1,3 @@
-# Import all models so their tables are registered in metadata
-import app.models.user      # noqa: F401
-import app.models.document  # noqa: F401
 import os
 import sys
 from logging.config import fileConfig
@@ -23,7 +20,9 @@ if config.config_file_name is not None:
 # Set the DB URL from app settings
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
-
+# Import all models so their tables are registered in metadata
+import app.models.user      # noqa: F401
+import app.models.document  # noqa: F401
 
 target_metadata = Base.metadata
 
